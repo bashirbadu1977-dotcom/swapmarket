@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwapMarket</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#172033}
+header{background:#111827;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;gap:20px;position:sticky;top:0;z-index:5}
+.logo{font-size:24px;font-weight:800}.logo span{color:#60a5fa}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer}
+.sell{background:#60a5fa;color:#07111f}.hero{padding:45px 6%;background:linear-gradient(135deg,#111827,#1e3a8a);color:white}
+.hero h1{font-size:42px;margin:0 0 12px}.hero p{max-width:650px;color:#dbeafe;font-size:17px}
+.search{margin-top:20px;display:flex;max-width:650px}.search input{flex:1;padding:15px;border:0;border-radius:10px 0 0 10px;font-size:16px}.search button{border-radius:0 10px 10px 0;background:#60a5fa}
+main{padding:30px 6%}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px;flex-wrap:wrap}
+select{padding:10px;border:1px solid #d1d5db;border-radius:9px;background:white}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.card{background:white;border-radius:16px;overflow:hidden;box-shadow:0 5px 20px #0000000d}.pic{height:170px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:58px}
+.info{padding:17px}.price{font-size:21px;font-weight:800;margin:8px 0}.meta{color:#667085;font-size:13px}.actions{display:flex;gap:8px;margin-top:14px}.offer{background:#111827;color:white;flex:1}.trade{background:#e5e7eb}
+.empty{padding:40px;text-align:center;color:#667085;grid-column:1/-1}
+.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.show{display:flex}.box{background:white;border-radius:16px;padding:24px;width:min(500px,100%)}.box h2{margin-top:0}.box input,.box textarea{width:100%;padding:12px;margin:7px 0 13px;border:1px solid #d1d5db;border-radius:9px}.close{float:right;background:#eee}.primary{background:#2563eb;color:white;width:100%}
+.notice{margin:20px 0;padding:15px;border-radius:12px;background:#eff6ff;color:#1e40af}
+footer{padding:30px 6%;text-align:center;color:#667085}
+@media(max-width:600px){.hero h1{font-size:32px}header{padding:15px 4%}main,.hero,footer{padding-left:4%;padding-right:4%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Swap<span>Market</span></div>
+  <button class="sell" onclick="openSell()">+ Sell an item</button>
+</header>
+
+<section class="hero">
+  <h1>Buy. Sell. Negotiate. Trade.</h1>
+  <p>A simple marketplace where people can sell items, make offers, negotiate prices, or propose a trade.</p>
+  <div class="search">
+    <input id="search" placeholder="Search phones, shoes, bikes..." oninput="render()">
+    <button onclick="render()">Search</button>
+  </div>
+</section>
+
+<main>
+  <div class="notice"><b>How SwapMarket can earn money:</b> take a small fee when a sale is completed, charge for promoted listings, and offer optional seller plans. Never promise sellers a guaranteed profit.</div>
+  <div class="notice" style="background:#f0fdf4;color:#166534"><b>Example:</b> if a seller completes a $100 sale and your marketplace fee is 4%, your platform earns $4 before payment-processing and other costs.</div>
+  <div class="toolbar">
+    <div>
+      <h2>Items for sale & trade</h2>
+      <div class="meta">Prices can be displayed in your preferred currency.</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <select id="currency" onchange="render()"> 
+      <option value="UGX">UGX — Ugandan Shilling</option>
+      <option value="USD">USD — US Dollar</option>
+      <option value="EUR">EUR — Euro</option>
+      <option value="GBP">GBP — British Pound</option>
+      <option value="KES">KES — Kenyan Shilling</option>
+      <option value="TZS">TZS — Tanzanian Shilling</option>
+      <option value="ZAR">ZAR — South African Rand</option>
+      <option value="NGN">NGN — Nigerian Naira</option>
+      <option value="AED">AED — UAE Dirham</option>
+      <option value="INR">INR — Indian Rupee</option>
+      <option value="CAD">CAD — Canadian Dollar</option>
+      <option value="AUD">AUD — Australian Dollar</option>
+      <option value="JPY">JPY — Japanese Yen</option>
+    </select>
+    <select id="category" onchange="render()">
+      <option value="">All categories</option><option>Electronics</option><option>Fashion</option><option>Gaming</option><option>Sports</option><option>Other</option>
+    </select>
+  </div>
+  <div id="grid" class="grid"></div>
+</main>
+
+<div id="modal" class="modal">
+ <div class="box">
+  <button class="close" onclick="closeModal()">✕</button>
+  <h2 id="modalTitle">Make an offer</h2>
+  <p id="modalSub"></p>
+  <input id="offerName" placeholder="Your name">
+  <input id="offerAmount" type="number" placeholder="Your offer amount">
+  <textarea id="offerMessage" rows="4" placeholder="Message or trade proposal (e.g. 'Would you trade for my bike?')"></textarea>
+  <button class="primary" onclick="submitOffer()">Send offer</button>
+ </div>
+</div>
+
+<div id="sellModal" class="modal">
+ <div class="box">
+  <button class="close" onclick="closeSell()">✕</button>
+  <h2>List an item</h2>
+  <input id="itemName" placeholder="Item name">
+  <input id="itemPrice" type="number" placeholder="Price">
+  <select id="itemCurrency" style="width:100%;padding:12px;margin:7px 0 13px">
+   <option value="UGX">UGX — Ugandan Shilling</option><option value="USD">USD — US Dollar</option>
+   <option value="EUR">EUR — Euro</option><option value="GBP">GBP — British Pound</option>
+   <option value="KES">KES — Kenyan Shilling</option><option value="TZS">TZS — Tanzanian Shilling</option>
+   <option value="ZAR">ZAR — South African Rand</option><option value="NGN">NGN — Nigerian Naira</option>
+   <option value="AED">AED — UAE Dirham</option><option value="INR">INR — Indian Rupee</option>
+  </select>
+  <input id="itemSeller" placeholder="Your name">
+  <select id="itemCategory" style="width:100%;padding:12px;margin:7px 0 13px">
+   <option>Electronics</option><option>Fashion</option><option>Gaming</option><option>Sports</option><option>Other</option>
+  </select>
+  <textarea id="itemDescription" rows="3" placeholder="Describe the item"></textarea>
+  <button class="primary" onclick="addItem()">Publish listing</button>
+ </div>
+</div>
+
+<footer>SwapMarket prototype • Built as a starting point for your marketplace idea</footer>
+
+<script>
+let items=[
+ {name:"iPhone 13",price:850000,currency:"UGX",cat:"Electronics",seller:"Alex",emoji:"📱",desc:"Good condition. Open to reasonable offers and trades."},
+ {name:"Nike Sneakers",price:180000,currency:"UGX",cat:"Fashion",seller:"Sam",emoji:"👟",desc:"Clean sneakers. Will consider trades for other shoes."},
+ {name:"PlayStation 5",price:1200000,currency:"UGX",cat:"Gaming",seller:"Jordan",emoji:"🎮",desc:"Console with controller. Negotiable."},
+ {name:"Mountain Bike",price:650000,currency:"UGX",cat:"Sports",seller:"Chris",emoji:"🚲",desc:"Works well. Interested in a trade for another bike or electronics."}
+];
+let selected=null;
+
+const currencyInfo = {
+ UGX:{symbol:"UGX", rate:1, decimals:0}, USD:{symbol:"$", rate:1/3700, decimals:2},
+ EUR:{symbol:"€", rate:1/4350, decimals:2}, GBP:{symbol:"£", rate:1/5050, decimals:2},
+ KES:{symbol:"KSh", rate:1/29, decimals:0}, TZS:{symbol:"TSh", rate:1/1.45, decimals:0},
+ ZAR:{symbol:"R", rate:1/205, decimals:2}, NGN:{symbol:"₦", rate:1/2.5, decimals:0},
+ AED:{symbol:"د.إ", rate:1/1005, decimals:2}, INR:{symbol:"₹", rate:1/43, decimals:2},
+ CAD:{symbol:"C$", rate:1/2700, decimals:2}, AUD:{symbol:"A$", rate:1/2450, decimals:2},
+ JPY:{symbol:"¥", rate:1/25, decimals:0}
+};
+function money(n, fromCode="UGX"){
+ const code=document.getElementById("currency")?.value||"UGX";
+ const c=currencyInfo[code]||currencyInfo.UGX;
+ const from=currencyInfo[fromCode]||currencyInfo.UGX;
+ const ugxValue=n/from.rate;
+ const converted=ugxValue*c.rate;
+ return c.symbol+" "+converted.toLocaleString(undefined,{minimumFractionDigits:c.decimals,maximumFractionDigits:c.decimals});
+}
+function render(){
+ const q=document.getElementById("search").value.toLowerCase(), c=document.getElementById("category").value;
+ const filtered=items.filter(x=>(!q||x.name.toLowerCase().includes(q)||x.desc.toLowerCase().includes(q))&&(!c||x.cat===c));
+ document.getElementById("grid").innerHTML=filtered.length?filtered.map((x,i)=>`
+ <div class="card"><div class="pic">${x.emoji||"📦"}</div><div class="info">
+ <div class="meta">${x.cat} • Seller: ${x.seller}</div><h3>${x.name}</h3><div class="price">${money(x.price,x.currency||"UGX")}</div>
+ <div class="meta">${x.desc}</div><div class="actions">
+ <button class="offer" onclick="openOffer(${items.indexOf(x)})">Make offer</button>
+ <button class="trade" onclick="openTrade(${items.indexOf(x)})">Trade</button>
+ </div></div></div>`).join(""):`<div class="empty">No items found. Try another search.</div>`;
+}
+function openOffer(i){selected=i;document.getElementById("modalTitle").textContent="Make an offer";document.getElementById("modalSub").textContent=items[i].name+" • Asking "+money(items[i].price,items[i].currency||"UGX");document.getElementById("offerAmount").style.display="block";document.getElementById("modal").classList.add("show")}
+function openTrade(i){selected=i;document.getElementById("modalTitle").textContent="Propose a trade";document.getElementById("modalSub").textContent="What would you trade for "+items[i].name+"?";document.getElementById("offerAmount").style.display="none";document.getElementById("modal").classList.add("show")}
+function submitOffer(){alert("Offer sent! In the real app, this would notify the seller and open a private negotiation chat.");closeModal()}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+function openSell(){document.getElementById("sellModal").classList.add("show")}
+function closeSell(){document.getElementById("sellModal").classList.remove("show")}
+function addItem(){
+ let name=document.getElementById("itemName").value.trim(),price=Number(document.getElementById("itemPrice").value),currency=document.getElementById("itemCurrency").value,seller=document.getElementById("itemSeller").value.trim(),cat=document.getElementById("itemCategory").value,desc=document.getElementById("itemDescription").value.trim();
+ if(!name||!price||!seller){alert("Please enter the item, price, and your name.");return}
+ const emojis={Electronics:"📱",Fashion:"👕",Gaming:"🎮",Sports:"⚽",Other:"📦"};
+ items.unshift({name,price,currency,cat,seller,emoji:emojis[cat],desc:desc||"Open to offers and trades."});
+ closeSell();render();document.getElementById("itemName").value="";
+ alert("Your listing was published in this prototype!");
+}
+render();
+</script>
+</body>
+</html>
